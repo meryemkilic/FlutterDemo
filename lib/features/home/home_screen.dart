@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../missions/missions_page.dart';
+import '../profile/profile_page.dart';
+import '../exercises/exercises_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,11 +30,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return IndexedStack(
       index: _selectedIndex,
       children: [
-        _buildSimplePage('Dersler'),
-        _buildSimplePage('Görevler'),
+        const ExercisesPage(),
+        const MissionsPage(),
         _buildSimplePage('Başarılar'),
         _buildSimplePage('Mağaza'),
-        _buildSimplePage('Profil'),
+        const ProfilePage(),
       ],
     );
   }

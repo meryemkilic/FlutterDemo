@@ -17,27 +17,27 @@ class AppTheme {
       textTheme: GoogleFonts.quicksandTextTheme().copyWith(
         displayLarge: GoogleFonts.quicksand(
           fontSize: 32,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w900,
           color: AppColors.primary,
         ),
         headlineMedium: GoogleFonts.quicksand(
           fontSize: 22,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
           color: AppColors.primary,
         ),
         bodyLarge: GoogleFonts.quicksand(
           fontSize: 16,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w700,
           color: AppColors.textDark,
         ),
         bodyMedium: GoogleFonts.quicksand(
           fontSize: 14,
-          fontWeight: FontWeight.w400,
+          fontWeight: FontWeight.w600,
           color: AppColors.textDark,
         ),
         labelSmall: GoogleFonts.quicksand(
           fontSize: 12,
-          fontWeight: FontWeight.w400,
+          fontWeight: FontWeight.w600,
           color: AppColors.hintText,
         ),
       ),
@@ -46,7 +46,7 @@ class AppTheme {
         fillColor: AppColors.inputFill,
         hintStyle: GoogleFonts.quicksand(
           color: AppColors.hintText,
-          fontWeight: FontWeight.w400,
+          fontWeight: FontWeight.w500,
           fontSize: 14,
         ),
         contentPadding: const EdgeInsets.symmetric(
