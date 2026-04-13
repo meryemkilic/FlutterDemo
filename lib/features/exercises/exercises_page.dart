@@ -1,19 +1,17 @@
-import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/app_colors.dart';
 
-// ─── Sabitleri tek yerden yönet ───────────────────────────────────────────
-const double _strokeW = 88.0; // yol genişliği (referans: kalın yol)
-const double _turnR = 68.0; // U-dönüş yarıçapı — daha yumuşak S eğrisi
-const double _edgePad = 10.0; // yol dış kenarı ile ekran kenarı arası
-const double _bandH = 160.0; // iki U-dönüşü arasındaki düz band yüksekliği
-// Satır yüksekliği = üst yarım daire + düz band + alt yarım daire
-// Ama painter'da her şey adım adım hesaplanır, rowH sadece kart konumu için:
-const double _rowH = _turnR * 2 + _bandH;
-const double _topPad = 48.0;
-const int _totalRows = 5;
+const double _strokeW = 56.0;
+const double _edgePad = 26.0;
+const double _topPad = 56.0;
+
+const double _cardW = 130.0;
+const double _cardH = 155.0;
+const double _labelH = 30.0;
+
+const int _nRows = 5;
+const double _rowGap = 210.0;
 
 class ExercisesPage extends StatefulWidget {
   const ExercisesPage({super.key});
@@ -119,10 +117,10 @@ class _ExercisesPageState extends State<ExercisesPage> {
   }
 
   Widget _buildPathView() {
-    const Color bgColor = Color(0xFFE8F5E8);
-    const Color panelColor = Color(0xFFC8E9C4);
-    const Color pathColor = Color(0xFF52B87A);
-    const Color inactiveColor = Color(0xFFF5FBF4);
+    const Color bgColor = Color(0xFFEDF8ED);
+    const Color panelColor = Color(0xFFCEECCB);
+    const Color pathColor = Color(0xFF67CAA1);
+    const Color tabOff = Color(0xFFFAFDF9);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -131,7 +129,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
           const SizedBox(height: 50),
           _buildPathHeader(),
           const SizedBox(height: 20),
-          _buildFloorTabs(inactiveColor, panelColor, pathColor),
+          _buildFloorTabs(tabOff, panelColor, pathColor),
           Expanded(
             child: Transform.translate(
               offset: const Offset(0, -1),
@@ -145,7 +143,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(36),
                   ),
-                  child: _buildDynamicPath(pathColor, panelColor),
+                  child: _buildScrollContent(pathColor),
                 ),
               ),
             ),
@@ -209,58 +207,32 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  Widget _buildFloorTabs(
-    Color inactiveColor,
-    Color activeColor,
-    Color pathColor,
-  ) {
+  Widget _buildFloorTabs(Color off, Color on, Color path) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          _buildTabItem(
-            1,
-            'HECE',
-            _activeFloor == 1,
-            activeColor,
-            inactiveColor,
-          ),
+          _tab(1, 'HECE', on, off),
           const SizedBox(width: 4),
-          _buildTabItem(
-            2,
-            'KELİME',
-            _activeFloor == 2,
-            activeColor,
-            inactiveColor,
-          ),
+          _tab(2, 'KELİME', on, off),
           const SizedBox(width: 4),
-          _buildTabItem(
-            3,
-            'CÜMLE',
-            _activeFloor == 3,
-            activeColor,
-            inactiveColor,
-          ),
+          _tab(3, 'CÜMLE', on, off),
         ],
       ),
     );
   }
 
-  Widget _buildTabItem(
-    int floor,
-    String title,
-    bool active,
-    Color activeColor,
-    Color inactiveColor,
-  ) {
+  Widget _tab(int floor, String title, Color on, Color off) {
+    final bool active = _activeFloor == floor;
+
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _activeFloor = floor),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: active ? activeColor : inactiveColor,
+            color: active ? on : off,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             border: active
                 ? null
@@ -281,7 +253,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  Widget _buildDynamicPath(Color roadColor, Color fieldBaseColor) {
+  Widget _buildScrollContent(Color roadColor) {
     final cards = [
       _CardData(
         row: 0,
@@ -320,21 +292,65 @@ class _ExercisesPageState extends State<ExercisesPage> {
       ),
     ];
 
-    final double canvasH = _topPad + _totalRows * _rowH + _turnR + 100.0;
+    final decorations = [
+      const _DecorationData(
+        asset: 'assets/illustrations/nature/tree_pair.png',
+        width: 82,
+        topOffset: -30,
+        placeLeft: false,
+      ),
+      const _DecorationData(
+        asset: 'assets/illustrations/nature/pond_ducks.png',
+        width: 88,
+        topOffset: 18,
+        placeLeft: true,
+      ),
+      const _DecorationData(
+        asset: 'assets/illustrations/nature/bush_flowers.png',
+        width: 64,
+        topOffset: 10,
+        placeLeft: false,
+      ),
+      const _DecorationData(
+        asset: 'assets/illustrations/nature/cottage.png',
+        width: 92,
+        topOffset: -20,
+        placeLeft: true,
+      ),
+      const _DecorationData(
+        asset: 'assets/illustrations/nature/windmill.png',
+        width: 86,
+        topOffset: 0,
+        placeLeft: false,
+      ),
+    ];
 
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final double w = constraints.maxWidth;
+      builder: (context, box) {
+        final double w = box.maxWidth;
 
-        // Yolun merkez çizgisinin x koordinatları.
-        // İç kenar = edgePad, dış kenar = edgePad + strokeW
-        // Merkez = edgePad + strokeW/2
-        // U-dönüşü merkezi bu x'ten turnR kadar içeride olmalı ki iç kenar
-        // tam edgePad'de kalsın.
-        // xCenter_left  = edgePad + strokeW/2
-        // xCenter_right = w - edgePad - strokeW/2
-        final double xL = _edgePad + _strokeW / 2; // sol merkez x
-        final double xR = w - _edgePad - _strokeW / 2; // sağ merkez x
+        final double xLeft = _edgePad + _strokeW / 2;
+        final double xRight = w - _edgePad - _strokeW / 2;
+        final double centerX = w / 2;
+
+        final double canvasH = _topPad + (_nRows * _rowGap) + 180;
+
+        double rowY(int row) => _topPad + row * _rowGap + 70;
+
+        double cardCenterX(int row) {
+          final bool leftSide = row.isEven;
+          return leftSide
+              ? xLeft + (centerX - xLeft) * 0.42
+              : xRight - (xRight - centerX) * 0.42;
+        }
+
+        double decoCenterX(int row, bool placeLeft) {
+          if (placeLeft) {
+            return xLeft + (centerX - xLeft) * 0.18;
+          } else {
+            return xRight - (xRight - centerX) * 0.18;
+          }
+        }
 
         return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 120),
@@ -345,83 +361,45 @@ class _ExercisesPageState extends State<ExercisesPage> {
               children: [
                 CustomPaint(
                   size: Size(w, canvasH),
-                  painter: FieldTexturePainter(
-                    baseColor: fieldBaseColor,
-                    stripeColor: const Color(0xFF7BC47A).withValues(alpha: 0.22),
-                  ),
-                ),
-                CustomPaint(
-                  size: Size(w, canvasH),
-                  painter: RoadPainter(
+                  painter: _RoadPainter(
                     roadColor: roadColor,
-                    outlineColor: const Color(0xFF2D6B42),
-                    xL: xL,
-                    xR: xR,
-                    turnR: _turnR,
-                    bandH: _bandH,
+                    xLeft: xLeft,
+                    xRight: xRight,
                     topPad: _topPad,
-                    totalRows: _totalRows,
+                    rowGap: _rowGap,
+                    rowCount: _nRows,
                   ),
                 ),
 
-                // Kartlar: yolun KENARINDA, düz bandın ortasında
-                ...cards.map((c) {
-                  final bool ltr = c.row % 2 == 0;
-
-                  // Düz bandın dikey ortası
-                  final double bandMidY =
-                      _topPad + c.row * _rowH + _turnR + _bandH / 2;
-
-                  // Kartın yatay pozisyonu:
-                  // ltr satırda kart sol kenarında (yolun sol iç kenarına yakın)
-                  // rtl satırda kart sağ kenarında (yolun sağ iç kenarına yakın)
-                  //
-                  // Yolun sol iç kenarı = xL - strokeW/2 = edgePad
-                  // Yolun sağ iç kenarı = xR + strokeW/2 = w - edgePad
-                  //
-                  // Kart (110px) yolun dış kenarının dışına taşar — referanstaki gibi
-                  final double cardLeft = ltr
-                      ? xL -
-                            _strokeW / 2 -
-                            10 // sol kenara yaslan (biraz dışa taşsın)
-                      : xR + _strokeW / 2 - 100; // sağ kenara yaslan
+                ...List.generate(decorations.length, (i) {
+                  final d = decorations[i];
+                  final y = rowY(i) + d.topOffset;
+                  final x = decoCenterX(i, d.placeLeft);
 
                   return Positioned(
-                    left: cardLeft,
-                    top: bandMidY - 85,
-                    child: _buildExerciseCard(
-                      title: c.title,
-                      subtitle: c.subtitle,
-                      completed: c.completed,
-                      current: c.current,
+                    left: x - d.width / 2,
+                    top: y,
+                    child: IgnorePointer(
+                      child: Opacity(
+                        opacity: 0.95,
+                        child: Image.asset(
+                          d.asset,
+                          width: d.width,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
                   );
                 }),
 
-                // Dekorasyon ikonları — yolun karşı boş tarafında
                 ...cards.map((c) {
-                  final bool ltr = c.row % 2 == 0;
-                  final double bandMidY =
-                      _topPad + c.row * _rowH + _turnR + _bandH / 2;
-                  // Karşı tarafın ortası (yol içi boşluk yok, ekranın boş alanı)
-                  final double iconX = ltr
-                      ? xR - _strokeW / 2 + (w - (xR - _strokeW / 2)) * 0.4
-                      : xL + _strokeW / 2 - (xL + _strokeW / 2) * 0.4;
-                  const icons = [
-                    Icons.egg_rounded,
-                    Icons.local_florist_rounded,
-                    Icons.cloud_rounded,
-                    Icons.home_rounded,
-                    Icons.forest_rounded,
-                  ];
+                  final double y = rowY(c.row);
+                  final double x = cardCenterX(c.row);
+
                   return Positioned(
-                    left: iconX - 14,
-                    top: bandMidY - 14,
-                    child: Icon(
-                      icons[c.row],
-                      size: 28,
-                      color: Colors.white.withValues(alpha: 0.4),
-                    ),
+                    left: x - _cardW / 2,
+                    top: y - (_cardH + _labelH) / 2,
+                    child: _buildCard(c),
                   );
                 }),
               ],
@@ -432,32 +410,28 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  Widget _buildExerciseCard({
-    required String title,
-    required String subtitle,
-    required bool completed,
-    required bool current,
-  }) {
-    final Color borderColor = completed
+  Widget _buildCard(_CardData c) {
+    final Color border = c.completed
         ? Colors.green.shade700
-        : (current ? AppColors.primary : AppColors.secondary);
+        : (c.current ? AppColors.primary : AppColors.secondary);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 110,
-          height: 140,
+          width: _cardW,
+          height: _cardH,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.10),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 14,
+                offset: const Offset(0, 7),
               ),
             ],
-            border: Border.all(color: borderColor, width: 4),
+            border: Border.all(color: border, width: 4),
           ),
           child: Stack(
             children: [
@@ -467,17 +441,17 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     flex: 3,
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: borderColor.withValues(alpha: 0.05),
+                        color: border.withValues(alpha: 0.06),
                         borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
+                          top: Radius.circular(18),
                         ),
                       ),
                       child: Icon(
                         Icons.auto_stories_rounded,
-                        size: 44,
-                        color: borderColor,
+                        size: 52,
+                        color: border,
                       ),
                     ),
                   ),
@@ -485,19 +459,19 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     flex: 2,
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.vertical(
-                          bottom: Radius.circular(16),
+                          bottom: Radius.circular(18),
                         ),
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        title.toUpperCase(),
+                        c.title.toUpperCase(),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.quicksand(
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: FontWeight.w900,
                           color: AppColors.primary,
                         ),
@@ -506,17 +480,17 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   ),
                 ],
               ),
-              if (completed)
+              if (c.completed)
                 Positioned(
                   top: -6,
                   right: -6,
                   child: CircleAvatar(
                     backgroundColor: Colors.green.shade700,
-                    radius: 13,
+                    radius: 14,
                     child: const Icon(
                       Icons.check,
                       color: Colors.white,
-                      size: 16,
+                      size: 17,
                     ),
                   ),
                 ),
@@ -525,15 +499,15 @@ class _ExercisesPageState extends State<ExercisesPage> {
         ),
         const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            subtitle,
+            c.subtitle,
             style: GoogleFonts.quicksand(
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: FontWeight.w900,
               color: AppColors.hintText,
             ),
@@ -544,11 +518,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
   }
 }
 
-// ─── Model ────────────────────────────────────────────────────────────────
 class _CardData {
   final int row;
-  final String title, subtitle;
-  final bool completed, current;
+  final String title;
+  final String subtitle;
+  final bool completed;
+  final bool current;
+
   const _CardData({
     required this.row,
     required this.title,
@@ -558,118 +534,80 @@ class _CardData {
   });
 }
 
-// ─── RoadPainter ──────────────────────────────────────────────────────────
-//
-//  Yol anatomisi — referansa uygun:
-//
-//  ┌──────────────────────────────────────────────────────┐
-//  │  [xL merkez]                         [xR merkez]    │
-//  │                                                      │
-//  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    ← satır 0 (ltr)
-//  │  [kart sol kenarda]                        ╰─╮
-//  │                                              │ ← sağ U
-//  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    ← satır 1 (rtl)
-//  │  ╭─╯                            [kart sağda]
-//  │  │ ← sol U
-//  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    ← satır 2 (ltr)
-//  └──────────────────────────────────────────────────────┘
-//
-//  xL ve xR: yolun merkez stroke x koordinatları
-//  Yol kalınlığı _strokeW → iç kenar ekran kenarına _edgePad kadar uzak
-//  U-dönüşü: arcTo ile, merkezi (xL, y+turnR) veya (xR, y+turnR)
-//  Dönüş yarıçapı = _turnR (yolun merkez çizgisi üzerinden)
-//
-class RoadPainter extends CustomPainter {
-  static const double _outlineExtra = 12.0;
+class _DecorationData {
+  final String asset;
+  final double width;
+  final double topOffset;
+  final bool placeLeft;
 
+  const _DecorationData({
+    required this.asset,
+    required this.width,
+    required this.topOffset,
+    required this.placeLeft,
+  });
+}
+
+class _RoadPainter extends CustomPainter {
   final Color roadColor;
-  final Color outlineColor;
-  final double xL, xR, turnR, bandH, topPad;
-  final int totalRows;
+  final double xLeft;
+  final double xRight;
+  final double topPad;
+  final double rowGap;
+  final int rowCount;
 
-  const RoadPainter({
+  const _RoadPainter({
     required this.roadColor,
-    required this.outlineColor,
-    required this.xL,
-    required this.xR,
-    required this.turnR,
-    required this.bandH,
+    required this.xLeft,
+    required this.xRight,
     required this.topPad,
-    required this.totalRows,
+    required this.rowGap,
+    required this.rowCount,
   });
 
-  static Path buildCenterPath({
-    required double xL,
-    required double xR,
-    required double turnR,
-    required double topPad,
-    required int totalRows,
-  }) {
+  double _rowY(int row) => topPad + row * rowGap + 70;
+
+  Path _buildRoadPath() {
     final path = Path();
-    double y = topPad + turnR;
-    path.moveTo(xL, y);
 
-    for (int row = 0; row < totalRows; row++) {
-      final bool ltr = row % 2 == 0;
+    final double startY = _rowY(0);
+    path.moveTo(xLeft, startY);
 
-      if (ltr) {
-        path.lineTo(xR, y);
-        if (row < totalRows - 1) {
-          path.arcTo(
-            Rect.fromLTRB(xR - turnR, y, xR + turnR, y + 2 * turnR),
-            -math.pi / 2,
-            math.pi,
-            false,
-          );
-          y += 2 * turnR;
-        }
+    for (int row = 0; row < rowCount; row++) {
+      final bool leftToRight = row.isEven;
+      final double y = _rowY(row);
+
+      if (leftToRight) {
+        path.lineTo(xRight, y);
       } else {
-        path.lineTo(xL, y);
-        if (row < totalRows - 1) {
-          path.arcTo(
-            Rect.fromLTRB(xL - turnR, y, xL + turnR, y + 2 * turnR),
-            -math.pi / 2,
-            -math.pi,
-            false,
-          );
-          y += 2 * turnR;
+        path.lineTo(xLeft, y);
+      }
+
+      if (row < rowCount - 1) {
+        final double nextY = _rowY(row + 1);
+        final double midY = (y + nextY) / 2;
+
+        if (leftToRight) {
+          path.quadraticBezierTo(xRight, midY, (xLeft + xRight) / 2, midY);
+          path.quadraticBezierTo(xLeft, midY, xLeft, nextY);
+        } else {
+          path.quadraticBezierTo(xLeft, midY, (xLeft + xRight) / 2, midY);
+          path.quadraticBezierTo(xRight, midY, xRight, nextY);
         }
       }
     }
-    return path;
-  }
 
-  static void _paintDashedAlongPath(
-    Canvas canvas,
-    Path path,
-    Paint paint,
-    double dashLen,
-    double gapLen,
-  ) {
-    for (final ui.PathMetric metric in path.computeMetrics()) {
-      double d = 0;
-      while (d < metric.length) {
-        final double len = math.min(dashLen, metric.length - d);
-        canvas.drawPath(metric.extractPath(d, d + len), paint);
-        d += dashLen + gapLen;
-      }
-    }
+    return path;
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final centerPath = buildCenterPath(
-      xL: xL,
-      xR: xR,
-      turnR: turnR,
-      topPad: topPad,
-      totalRows: totalRows,
-    );
+    final roadPath = _buildRoadPath();
 
-    final outlinePaint = Paint()
-      ..color = outlineColor
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = _strokeW + _outlineExtra
+      ..strokeWidth = _strokeW + 8
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
@@ -680,52 +618,53 @@ class RoadPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    canvas.drawPath(centerPath, outlinePaint);
-    canvas.drawPath(centerPath, roadPaint);
-
-    final dashPaint = Paint()
-      ..color = const Color(0xFFE8FFF0).withValues(alpha: 0.92)
+    final innerGlowPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = _strokeW - 16
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
-    _paintDashedAlongPath(canvas, centerPath, dashPaint, 18, 14);
+    canvas.drawPath(roadPath, shadowPaint);
+    canvas.drawPath(roadPath, roadPaint);
+    canvas.drawPath(roadPath, innerGlowPaint);
+
+    _drawDashedCenterLine(canvas, roadPath);
   }
 
-  @override
-  bool shouldRepaint(covariant RoadPainter old) => true;
-}
+  void _drawDashedCenterLine(Canvas canvas, Path path) {
+    final dashPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.62)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.2
+      ..strokeCap = StrokeCap.round;
 
-// ─── Çimen dokusu (referans: yatay, hafif koyu yeşil oval şeritler) ───────
-class FieldTexturePainter extends CustomPainter {
-  final Color baseColor;
-  final Color stripeColor;
+    const double dashLength = 18;
+    const double dashGap = 13;
 
-  FieldTexturePainter({
-    required this.baseColor,
-    required this.stripeColor,
-  });
+    for (final metric in path.computeMetrics()) {
+      double distance = 10;
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = baseColor);
+      while (distance < metric.length) {
+        final double end = (distance + dashLength < metric.length)
+            ? distance + dashLength
+            : metric.length;
 
-    final rnd = math.Random(7);
-    const int count = 32;
-    for (int i = 0; i < count; i++) {
-      final double stripeH = 6 + rnd.nextDouble() * 12;
-      final double stripeW = size.width * (0.25 + rnd.nextDouble() * 0.55);
-      final double top = rnd.nextDouble() * math.max(1, size.height - stripeH);
-      final double left = rnd.nextDouble() * math.max(1, size.width - stripeW);
-      final rrect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(left, top, stripeW, stripeH),
-        Radius.circular(stripeH / 2),
-      );
-      canvas.drawRRect(rrect, Paint()..color = stripeColor);
+        final extracted = metric.extractPath(distance, end);
+        canvas.drawPath(extracted, dashPaint);
+
+        distance += dashLength + dashGap;
+      }
     }
   }
 
   @override
-  bool shouldRepaint(covariant FieldTexturePainter old) =>
-      old.baseColor != baseColor || old.stripeColor != stripeColor;
+  bool shouldRepaint(covariant _RoadPainter oldDelegate) {
+    return oldDelegate.roadColor != roadColor ||
+        oldDelegate.xLeft != xLeft ||
+        oldDelegate.xRight != xRight ||
+        oldDelegate.topPad != topPad ||
+        oldDelegate.rowGap != rowGap ||
+        oldDelegate.rowCount != rowCount;
+  }
 }
