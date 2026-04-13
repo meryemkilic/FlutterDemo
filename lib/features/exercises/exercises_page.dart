@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/app_colors.dart';
 
-const double _strokeW = 56.0;
-const double _edgePad = 26.0;
-const double _topPad = 56.0;
+const double _strokeW = 42.0;
+const double _edgePad = 28.0;
+const double _topPad = 64.0;
 
 const double _cardW = 130.0;
 const double _cardH = 155.0;
 const double _labelH = 30.0;
 
 const int _nRows = 5;
-const double _rowGap = 210.0;
+const double _rowGap = 270.0;
 
 class ExercisesPage extends StatefulWidget {
   const ExercisesPage({super.key});
@@ -292,65 +292,73 @@ class _ExercisesPageState extends State<ExercisesPage> {
       ),
     ];
 
-    final decorations = [
-      const _DecorationData(
-        asset: 'assets/illustrations/nature/tree_pair.png',
-        width: 82,
-        topOffset: -30,
-        placeLeft: false,
-      ),
-      const _DecorationData(
-        asset: 'assets/illustrations/nature/pond_ducks.png',
-        width: 88,
-        topOffset: 18,
-        placeLeft: true,
-      ),
-      const _DecorationData(
-        asset: 'assets/illustrations/nature/bush_flowers.png',
-        width: 64,
-        topOffset: 10,
-        placeLeft: false,
-      ),
-      const _DecorationData(
-        asset: 'assets/illustrations/nature/cottage.png',
-        width: 92,
-        topOffset: -20,
-        placeLeft: true,
-      ),
-      const _DecorationData(
-        asset: 'assets/illustrations/nature/windmill.png',
-        width: 86,
-        topOffset: 0,
-        placeLeft: false,
-      ),
-    ];
-
     return LayoutBuilder(
       builder: (context, box) {
         final double w = box.maxWidth;
-
         final double xLeft = _edgePad + _strokeW / 2;
         final double xRight = w - _edgePad - _strokeW / 2;
         final double centerX = w / 2;
 
-        final double canvasH = _topPad + (_nRows * _rowGap) + 180;
+        final double canvasH = _topPad + (_nRows * _rowGap) + 260;
 
-        double rowY(int row) => _topPad + row * _rowGap + 70;
+        double rowY(int row) => _topPad + row * _rowGap + 82;
 
         double cardCenterX(int row) {
-          final bool leftSide = row.isEven;
-          return leftSide
-              ? xLeft + (centerX - xLeft) * 0.42
-              : xRight - (xRight - centerX) * 0.42;
+          return row.isEven
+              ? xLeft + (centerX - xLeft) * 0.38
+              : xRight - (xRight - centerX) * 0.38;
         }
 
-        double decoCenterX(int row, bool placeLeft) {
-          if (placeLeft) {
-            return xLeft + (centerX - xLeft) * 0.18;
-          } else {
-            return xRight - (xRight - centerX) * 0.18;
-          }
-        }
+        final decorations = <_PlacedDecoration>[
+          _PlacedDecoration(
+            asset: 'assets/illustrations/nature/tree_pair.png',
+            width: 82,
+            left: w - 114,
+            top: rowY(0) + 34,
+          ),
+          _PlacedDecoration(
+            asset: 'assets/illustrations/nature/butterfly.png',
+            width: 40,
+            left: w - 54,
+            top: rowY(0) - 12,
+          ),
+          _PlacedDecoration(
+            asset: 'assets/illustrations/nature/pond_ducks.png',
+            width: 92,
+            left: 34,
+            top: rowY(1) + 88,
+          ),
+          _PlacedDecoration(
+            asset: 'assets/illustrations/nature/bush_flowers.png',
+            width: 60,
+            left: w - 96,
+            top: rowY(2) + 132,
+          ),
+          _PlacedDecoration(
+            asset: 'assets/illustrations/nature/cottage.png',
+            width: 96,
+            left: centerX - 26,
+            top: rowY(3) - 42,
+          ),
+          _PlacedDecoration(
+            asset: 'assets/illustrations/nature/windmill.png',
+            width: 80,
+            left: centerX + 30,
+            top: rowY(3) - 54,
+          ),
+          _PlacedDecoration(
+            asset: 'assets/illustrations/nature/mushroom_group.png',
+            width: 56,
+            left: w - 84,
+            top: rowY(4) + 116,
+          ),
+          _PlacedDecoration(
+            asset: 'assets/illustrations/nature/bush_flowers.png',
+            width: 58,
+            left: 22,
+            top: rowY(4) + 150,
+          ),
+        ];
 
         return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 120),
@@ -370,18 +378,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     rowCount: _nRows,
                   ),
                 ),
-
-                ...List.generate(decorations.length, (i) {
-                  final d = decorations[i];
-                  final y = rowY(i) + d.topOffset;
-                  final x = decoCenterX(i, d.placeLeft);
-
+                ...decorations.map((d) {
                   return Positioned(
-                    left: x - d.width / 2,
-                    top: y,
+                    left: d.left,
+                    top: d.top,
                     child: IgnorePointer(
                       child: Opacity(
-                        opacity: 0.95,
+                        opacity: d.opacity,
                         child: Image.asset(
                           d.asset,
                           width: d.width,
@@ -391,7 +394,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     ),
                   );
                 }),
-
                 ...cards.map((c) {
                   final double y = rowY(c.row);
                   final double x = cardCenterX(c.row);
@@ -426,7 +428,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
             borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
+                color: Colors.black.withValues(alpha: 0.10),
                 blurRadius: 14,
                 offset: const Offset(0, 7),
               ),
@@ -534,17 +536,19 @@ class _CardData {
   });
 }
 
-class _DecorationData {
+class _PlacedDecoration {
   final String asset;
   final double width;
-  final double topOffset;
-  final bool placeLeft;
+  final double left;
+  final double top;
+  final double opacity;
 
-  const _DecorationData({
+  const _PlacedDecoration({
     required this.asset,
     required this.width,
-    required this.topOffset,
-    required this.placeLeft,
+    required this.left,
+    required this.top,
+    this.opacity = 0.96,
   });
 }
 
@@ -565,10 +569,11 @@ class _RoadPainter extends CustomPainter {
     required this.rowCount,
   });
 
-  double _rowY(int row) => topPad + row * rowGap + 70;
+  double _rowY(int row) => topPad + row * rowGap + 82;
 
   Path _buildRoadPath() {
     final path = Path();
+    final double centerX = (xLeft + xRight) / 2;
 
     final double startY = _rowY(0);
     path.moveTo(xLeft, startY);
@@ -585,14 +590,48 @@ class _RoadPainter extends CustomPainter {
 
       if (row < rowCount - 1) {
         final double nextY = _rowY(row + 1);
-        final double midY = (y + nextY) / 2;
+
+        final double gap = nextY - y;
+        final double bendTop = y + gap * 0.22;
+        final double bendMid = y + gap * 0.55;
+        final double bendBottom = y + gap * 0.84;
 
         if (leftToRight) {
-          path.quadraticBezierTo(xRight, midY, (xLeft + xRight) / 2, midY);
-          path.quadraticBezierTo(xLeft, midY, xLeft, nextY);
+          path.cubicTo(
+            xRight + 2,
+            bendTop,
+            xRight - 6,
+            bendMid - 10,
+            centerX + 38,
+            bendMid,
+          );
+
+          path.cubicTo(
+            centerX - 92,
+            bendMid + 8,
+            xLeft - 8,
+            bendBottom,
+            xLeft,
+            nextY,
+          );
         } else {
-          path.quadraticBezierTo(xLeft, midY, (xLeft + xRight) / 2, midY);
-          path.quadraticBezierTo(xRight, midY, xRight, nextY);
+          path.cubicTo(
+            xLeft - 2,
+            bendTop,
+            xLeft + 6,
+            bendMid - 10,
+            centerX - 38,
+            bendMid,
+          );
+
+          path.cubicTo(
+            centerX + 92,
+            bendMid + 8,
+            xRight + 8,
+            bendBottom,
+            xRight,
+            nextY,
+          );
         }
       }
     }
@@ -605,9 +644,9 @@ class _RoadPainter extends CustomPainter {
     final roadPath = _buildRoadPath();
 
     final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.05)
+      ..color = Colors.black.withValues(alpha: 0.028)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = _strokeW + 8
+      ..strokeWidth = _strokeW + 6
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
@@ -619,9 +658,9 @@ class _RoadPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
 
     final innerGlowPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
+      ..color = Colors.white.withValues(alpha: 0.07)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = _strokeW - 16
+      ..strokeWidth = _strokeW - 12
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
@@ -634,13 +673,13 @@ class _RoadPainter extends CustomPainter {
 
   void _drawDashedCenterLine(Canvas canvas, Path path) {
     final dashPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.62)
+      ..color = Colors.white.withValues(alpha: 0.46)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2
+      ..strokeWidth = 2.6
       ..strokeCap = StrokeCap.round;
 
-    const double dashLength = 18;
-    const double dashGap = 13;
+    const double dashLength = 16;
+    const double dashGap = 14;
 
     for (final metric in path.computeMetrics()) {
       double distance = 10;
@@ -650,9 +689,7 @@ class _RoadPainter extends CustomPainter {
             ? distance + dashLength
             : metric.length;
 
-        final extracted = metric.extractPath(distance, end);
-        canvas.drawPath(extracted, dashPaint);
-
+        canvas.drawPath(metric.extractPath(distance, end), dashPaint);
         distance += dashLength + dashGap;
       }
     }
